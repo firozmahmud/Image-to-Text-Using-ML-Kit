@@ -66,33 +66,36 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == 1010 && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            imageBitmap = (Bitmap) extras.get("data");
+            imageBitmap = (Bitmap) data.getExtras().get("data");
             binding.image.setImageBitmap(imageBitmap);
         }
     }
 
     private void detectTextFromImage() {
+
+        if (imageBitmap == null) {
+            Toast.makeText(this, "Image not found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         FirebaseVisionImage firebaseVisionImage = FirebaseVisionImage.fromBitmap(imageBitmap);
 
-        FirebaseVisionTextRecognizer detector = FirebaseVision.getInstance().getOnDeviceTextRecognizer();
+        FirebaseVisionTextRecognizer recognizer = FirebaseVision.getInstance().getOnDeviceTextRecognizer();
 
-        Task<FirebaseVisionText> result = detector.processImage(firebaseVisionImage)
-                .addOnSuccessListener(new OnSuccessListener<FirebaseVisionText>() {
-                    @Override
-                    public void onSuccess(FirebaseVisionText firebaseVisionText) {
-                        // Task completed successfully
-                        String text = firebaseVisionText.getText();
-                        binding.resultText.setText(text);
-                    }
-                }).addOnFailureListener(
-                        new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                // Task failed with an exception
-                                Toast.makeText(MainActivity.this, "Failed to detect text", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+        recognizer.processImage(firebaseVisionImage).addOnSuccessListener(new OnSuccessListener<FirebaseVisionText>() {
+            @Override
+            public void onSuccess(FirebaseVisionText firebaseVisionText) {
+                // Task completed successfully
+                String text = firebaseVisionText.getText();
+                binding.resultText.setText(text);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                // Task failed with an exception
+                Toast.makeText(MainActivity.this, "Failed to detect text", Toast.LENGTH_SHORT).show();
+            }
+        });
 
     }
 
